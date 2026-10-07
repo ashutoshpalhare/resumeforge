@@ -1,4 +1,5 @@
-import { Plus } from "lucide-react";
+import { Award, Briefcase, FolderGit2, GraduationCap, Plus } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -7,7 +8,7 @@ import { useResume } from "@/lib/resume/store";
 import { uid, type Resume } from "@/lib/resume/types";
 import { fmtRange } from "@/lib/resume/format";
 import { SAMPLE_JD } from "@/lib/resume/sample";
-import { BulletList, EntryCard, Field, SectionHeader, TagInput, TextField, move } from "./fields";
+import { BulletList, EmptyState, EntryCard, Field, SectionHeader, TagInput, TextField, move } from "./fields";
 
 type ListKey = "experience" | "education" | "projects" | "certifications" | "custom";
 
@@ -56,7 +57,7 @@ export function SummaryEditor() {
     <>
       <SectionHeader title="Summary" description="2–3 sentences. Mirror the target role title and your strongest relevant skills." />
       <Field label="Professional summary" hint={`${words} words · aim for 30–60`}>
-        <Textarea rows={6} value={resume.summary} onChange={(e) => update((r) => ({ ...r, summary: e.target.value }))} className="bg-surface-2" />
+        <Textarea rows={6} value={resume.summary} className="bg-surface-2 leading-relaxed" onChange={(e) => update((r) => ({ ...r, summary: e.target.value }))} />
       </Field>
     </>
   );
@@ -68,6 +69,7 @@ export function ExperienceEditor() {
     <>
       <SectionHeader title="Experience" description="Most recent first. Start bullets with action verbs and include real metrics." action={<AddBtn label="Add role" onClick={() => l.add({ id: uid(), role: "", company: "", location: "", start: "", end: "", current: false, bullets: [""] })} />} />
       <div className="space-y-4">
+        {!l.items.length && <EmptyState icon={Briefcase} title="No roles yet" description="Add your work history, most recent first." action={<AddBtn label="Add role" onClick={() => l.add({ id: uid(), role: "", company: "", location: "", start: "", end: "", current: false, bullets: [""] })} />} />}
         {l.items.map((e, i) => (
           <EntryCard key={e.id} title={e.role || "New role"} subtitle={[e.company, fmtRange(e.start, e.end, e.current)].filter(Boolean).join(" · ")} onUp={i > 0 ? () => l.shift(i, -1) : undefined} onDown={i < l.items.length - 1 ? () => l.shift(i, 1) : undefined} onDelete={() => l.remove(e.id)}>
             <div className="grid gap-4 sm:grid-cols-2">
@@ -77,13 +79,13 @@ export function ExperienceEditor() {
               <div className="grid grid-cols-2 gap-2">
                 <TextField label="Start" type="month" value={e.start} onChange={(v) => l.set(e.id, { start: v })} />
                 {e.current ? (
-                  <Field label="End"><Input disabled value="Present" className="bg-surface-2" /></Field>
+                  <Field label="End"><Input disabled value="Present" className="h-10 bg-surface-2" /></Field>
                 ) : (
                   <TextField label="End" type="month" value={e.end} onChange={(v) => l.set(e.id, { end: v })} />
                 )}
               </div>
             </div>
-            <label className="flex items-center gap-2 text-sm text-muted-foreground">
+            <label className="flex w-fit cursor-pointer items-center gap-2 text-sm text-muted-foreground">
               <Switch checked={e.current} onCheckedChange={(c) => l.set(e.id, { current: c })} /> I currently work here
             </label>
             <BulletList label="Achievements & responsibilities" items={e.bullets} onChange={(b) => l.set(e.id, { bullets: b })} placeholder="Led … resulting in …" />
@@ -100,6 +102,7 @@ export function EducationEditor() {
     <>
       <SectionHeader title="Education" description="Degree, institution and dates." action={<AddBtn label="Add education" onClick={() => l.add({ id: uid(), degree: "", school: "", location: "", start: "", end: "", details: "" })} />} />
       <div className="space-y-4">
+        {!l.items.length && <EmptyState icon={GraduationCap} title="No education yet" description="Add a degree, bootcamp or relevant program." action={<AddBtn label="Add education" onClick={() => l.add({ id: uid(), degree: "", school: "", location: "", start: "", end: "", details: "" })} />} />}
         {l.items.map((e, i) => (
           <EntryCard key={e.id} title={e.degree || "New education"} subtitle={e.school} onUp={i > 0 ? () => l.shift(i, -1) : undefined} onDown={i < l.items.length - 1 ? () => l.shift(i, 1) : undefined} onDelete={() => l.remove(e.id)}>
             <div className="grid gap-4 sm:grid-cols-2">
@@ -135,6 +138,7 @@ export function ProjectsEditor() {
     <>
       <SectionHeader title="Projects" description="Side projects, open source or notable work samples." action={<AddBtn label="Add project" onClick={() => l.add({ id: uid(), name: "", link: "", bullets: [""] })} />} />
       <div className="space-y-4">
+        {!l.items.length && <EmptyState icon={FolderGit2} title="No projects yet" description="Projects are optional but help when experience is light." action={<AddBtn label="Add project" onClick={() => l.add({ id: uid(), name: "", link: "", bullets: [""] })} />} />}
         {l.items.map((p, i) => (
           <EntryCard key={p.id} title={p.name || "New project"} subtitle={p.link} onUp={i > 0 ? () => l.shift(i, -1) : undefined} onDown={i < l.items.length - 1 ? () => l.shift(i, 1) : undefined} onDelete={() => l.remove(p.id)}>
             <div className="grid gap-4 sm:grid-cols-2">
@@ -155,6 +159,7 @@ export function CertificationsEditor() {
     <>
       <SectionHeader title="Certifications" description="Name, issuing body and date earned." action={<AddBtn label="Add certification" onClick={() => l.add({ id: uid(), name: "", issuer: "", date: "" })} />} />
       <div className="space-y-4">
+        {!l.items.length && <EmptyState icon={Award} title="No certifications yet" description="Optional — only list credentials you actually hold." action={<AddBtn label="Add certification" onClick={() => l.add({ id: uid(), name: "", issuer: "", date: "" })} />} />}
         {l.items.map((c, i) => (
           <EntryCard key={c.id} title={c.name || "New certification"} subtitle={c.issuer} onUp={i > 0 ? () => l.shift(i, -1) : undefined} onDown={i < l.items.length - 1 ? () => l.shift(i, 1) : undefined} onDelete={() => l.remove(c.id)}>
             <div className="grid gap-4 sm:grid-cols-3">
@@ -196,13 +201,20 @@ export function JobEditor() {
   const { resume, update } = useResume();
   const onFile = async (f: File | undefined) => {
     if (!f) return;
-    const text = await f.text();
-    update((r) => ({ ...r, jobDescription: text }));
+    if (f.size > 200_000) { toast.error("That file is too large — paste the posting text instead."); return; }
+    try {
+      const text = await f.text();
+      if (!text.trim()) { toast.error("The file is empty."); return; }
+      update((r) => ({ ...r, jobDescription: text }));
+      toast.success(`Imported ${f.name}`);
+    } catch {
+      toast.error("Couldn't read that file. Try a plain .txt file.");
+    }
   };
   return (
     <>
       <SectionHeader title="Target job description" description="Paste the full posting. Everything is analyzed locally in your browser." />
-      <Textarea rows={18} value={resume.jobDescription} onChange={(e) => update((r) => ({ ...r, jobDescription: e.target.value }))} placeholder="Paste the job description here…" className="bg-surface-2 font-mono text-xs leading-relaxed" />
+      <Textarea aria-label="Job description" rows={18} value={resume.jobDescription} onChange={(e) => update((r) => ({ ...r, jobDescription: e.target.value }))} placeholder="Paste the job description here…" className="bg-surface-2 font-mono text-xs leading-relaxed" />
       <div className="mt-3 flex flex-wrap gap-2">
         <Button size="sm" variant="secondary" asChild>
           <label className="cursor-pointer">Import .txt<input type="file" accept=".txt,.md,text/plain" className="sr-only" onChange={(e) => onFile(e.target.files?.[0])} /></label>
