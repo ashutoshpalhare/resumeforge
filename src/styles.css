@@ -73,14 +73,14 @@
   --secondary: oklch(0.23 0.006 260);
   --secondary-foreground: oklch(0.94 0.003 260);
   --muted: oklch(0.22 0.005 260);
-  --muted-foreground: oklch(0.66 0.01 260);
+  --muted-foreground: oklch(0.72 0.01 260);
   --accent: oklch(0.25 0.008 260);
   --accent-foreground: oklch(0.96 0.003 260);
   --destructive: oklch(0.66 0.2 25);
   --destructive-foreground: oklch(0.98 0 0);
   --success: oklch(0.82 0.15 160);
   --warning: oklch(0.82 0.14 80);
-  --border: oklch(1 0 0 / 8%);
+  --border: oklch(1 0 0 / 9%);
   --input: oklch(1 0 0 / 12%);
   --ring: oklch(0.86 0.15 165 / 60%);
   --paper: oklch(1 0 0);
@@ -112,7 +112,10 @@
     color: var(--color-foreground);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
+    font-feature-settings: "ss01", "cv11";
   }
+  :focus-visible { outline: 2px solid var(--color-ring); outline-offset: 2px; }
+  ::selection { background: oklch(0.86 0.15 165 / 30%); }
 }
 
 @utility bg-hero { background-image: var(--gradient-hero); }
@@ -127,8 +130,10 @@
 
 .print-root { display: none; }
 @media print {
-  @page { size: letter; margin: 0.5in; }
-  html, body { background: white !important; color-scheme: light; }
+  @page { size: letter; margin: 0.55in 0.6in; }
+  html, body { background: white !important; color-scheme: light; height: auto !important; overflow: visible !important; }
   .no-print { display: none !important; }
   .print-root { display: block !important; }
+  .print-root section, .print-root li { break-inside: avoid; }
+  .print-root h2 { break-after: avoid; }
 }
