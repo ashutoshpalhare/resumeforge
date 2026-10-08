@@ -147,9 +147,9 @@ function Studio() {
               ))}
             </div>
           </div>
-          <div className="overflow-x-auto">
-            <div id="resume-print" className="mx-auto w-[8.5in] max-w-none rounded-sm shadow-2xl ring-1 ring-border print:w-auto print:shadow-none print:ring-0">
-              <ResumeDocument resume={resume} className="min-h-[11in] p-[0.6in]" />
+          <div>
+            <div id="resume-print" className="mx-auto w-full max-w-[8.5in] rounded-sm shadow-2xl ring-1 ring-border print:w-auto print:shadow-none print:ring-0">
+              <ResumeDocument resume={resume} className="min-h-[11in] p-[6%] print:p-[0.6in]" />
             </div>
           </div>
         </aside>
