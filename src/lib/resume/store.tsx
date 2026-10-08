@@ -23,6 +23,8 @@ interface Ctx {
   remove: (id: string) => void;
   reset: () => void;
   setBaseline: () => void;
+  rename: (name: string) => void;
+  importResume: (r: Resume) => void;
 }
 
 const ResumeCtx = createContext<Ctx | null>(null);
@@ -99,6 +101,13 @@ export function ResumeProvider({ children }: { children: ReactNode }) {
           const baselines = { ...s.baselines };
           delete baselines[resume.id];
           return { ...s, baselines, resumes: s.resumes.map((r) => (r.id === resume.id ? blank : r)) };
+        }),
+      rename: (name) =>
+        setState((s) => ({ ...s, resumes: s.resumes.map((r) => (r.id === s.activeId ? { ...r, name } : r)) })),
+      importResume: (r) =>
+        setState((s) => {
+          const copy: Resume = { ...structuredClone(r), id: uid(), updatedAt: Date.now() };
+          return { ...s, resumes: [...s.resumes, copy], activeId: copy.id };
         }),
       setBaseline: () =>
         setState((s) => ({ ...s, baselines: { ...s.baselines, [resume.id]: structuredClone(resume) } })),
