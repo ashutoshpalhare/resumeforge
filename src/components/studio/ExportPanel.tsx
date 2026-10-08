@@ -1,4 +1,5 @@
-import { Copy, FileDown, FileJson, FileText, Files, RotateCcw, Trash2 } from "lucide-react";
+import { Copy, FileDown, FileJson, FileText, Files, RotateCcw, Trash2, Upload } from "lucide-react";
+import { useRef } from "react";
 import { toast } from "sonner";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
@@ -19,24 +20,39 @@ function download(name: string, content: string, type: string) {
 }
 
 export function ExportPanel() {
-  const { resume, duplicate, reset, remove, resumes } = useResume();
+  const { resume, duplicate, reset, remove, resumes, importResume } = useResume();
+  const fileRef = useRef<HTMLInputElement>(null);
+  const onFile = async (f?: File) => {
+    if (!f) return;
+    try {
+      const data = JSON.parse(await f.text());
+      if (!data || typeof data !== "object" || !data.personal || !Array.isArray(data.experience)) throw new Error();
+      importResume(data);
+      toast.success("Resume imported");
+    } catch {
+      toast.error("That file isn't a valid ResumeForge backup.");
+    }
+    if (fileRef.current) fileRef.current.value = "";
+  };
   const base = (resume.personal.fullName || "resume").replace(/\s+/g, "_");
 
   const actions = [
     { icon: FileDown, title: "Download PDF", desc: "Selectable text, ATS-safe. Choose “Save as PDF” in the print dialog.", run: () => window.print() },
-    { icon: Copy, title: "Copy plain text", desc: "Paste into application forms that ask for raw text.", run: async () => { await navigator.clipboard.writeText(toPlainText(resume)); toast.success("Resume copied as plain text"); } },
+    { icon: Copy, title: "Copy plain text", desc: "Paste into application forms that ask for raw text.", run: async () => { try { await navigator.clipboard.writeText(toPlainText(resume)); toast.success("Resume copied as plain text"); } catch { toast.error("Couldn't access the clipboard. Use Download .txt instead."); } } },
     { icon: FileText, title: "Download .txt", desc: "Universal plain-text version.", run: () => download(`${base}.txt`, toPlainText(resume), "text/plain") },
     { icon: FileJson, title: "Download data (.json)", desc: "Back up or move your resume to another browser.", run: () => download(`${base}.json`, JSON.stringify(resume, null, 2), "application/json") },
+    { icon: Upload, title: "Import data (.json)", desc: "Restore a resume you previously backed up.", run: () => fileRef.current?.click() },
     { icon: Files, title: "Duplicate resume", desc: "Fork this version to tailor for another job.", run: () => { duplicate(); toast.success("Duplicated — you're now editing the copy"); } },
   ];
 
   return (
     <>
       <SectionHeader title="Export" description="Your resume is saved automatically in this browser." />
+      <input ref={fileRef} type="file" accept="application/json,.json" className="sr-only" aria-label="Import resume JSON" onChange={(e) => onFile(e.target.files?.[0])} />
       <div className="grid gap-3 sm:grid-cols-2">
         {actions.map((a) => (
           <button key={a.title} onClick={a.run} className="group flex gap-3 rounded-lg border bg-surface p-4 text-left transition-colors hover:border-primary/40 hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-            <a.icon className="mt-0.5 size-4 text-primary" />
+            <a.icon className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
             <span>
               <span className="block text-sm font-medium">{a.title}</span>
               <span className="block text-xs text-muted-foreground">{a.desc}</span>
